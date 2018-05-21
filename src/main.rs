@@ -9,15 +9,15 @@
 mod tfe {
     // a 64bit mask with a single section of 16 bits set to 0.
     // used to extract a "horizontal slice" out of a 64 bit integer.
-    const ROW_MASK: u64 = !0b1111_1111_1111_1111u64;
+    const ROW_MASK: u64 = 0xFFFF_u64;
 
     // a 64bit mask with the leftmost 4 bits set to to 1.
     // used to extract single tile.
-    const VAL_MASK: u64 = 0b1111u64;
+    const VAL_MASK: u64 = 0xF_u64;
 
     // a 64bit mask with 4 sections each starting after the n * 16th bit.
     // used to extract a "vertical slice" out of a 64 bit integer.
-    const COL_MASK: u64 = !(0b1111u64 | (0b1111u64 << 16) | (0b1111u64 << 32) | (0b1111u64 << 48));
+    const COL_MASK: u64 = 0x000F_000F_000F_000F_u64;
 
     // generic container for a game.
     // includes margin property to offset printing the board from the left edge of the screen.
@@ -55,10 +55,7 @@ mod tfe {
 }
 
 fn main() {
-    let game = tfe::Container {
-        board: 0b0000000000000000000000000000000001000000000000000000000100101111u64,
-        margin: 10
-    };
+    let game = tfe::Container { board: 0x000A_0000_0000_002B_u64, margin: 10 };
 
     game.print();
 }
