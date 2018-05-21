@@ -3,7 +3,7 @@
 // references:
 //  - https://github.com/nneonneo/2048-ai/blob/master/2048.h
 //  - https://github.com/nneonneo/2048-ai/blob/master/2048.cpp
-//
+
 //  module tfe - [t]wenty_[f]orty_[e]ight.
 //  namespace for 2048 game module.
 mod tfe {
@@ -34,17 +34,22 @@ mod tfe {
 
             // map 4 bits to one digit, 64 bits / 16 tiles / 4 bits per tile.
             let tiles: Vec<u64> = (0..16).map(|n| 1u64 << (self.board >> ((15 - n) << 2) & VAL_MASK))
-                                         .map(|r| if r > 1 { r } else { 0 }).collect();
+                                         .map(|r| if r > 1 { r } else { 0 })
+                                         .collect();
 
             // print top area
             println!("{}*-------------------------------------------*", spacer);
             println!("{}|   _____________________________________   |", spacer);
+            println!("{}|   |        |        |        |        |   |", spacer);
 
-            // print game area
-            for row in tiles.chunks(4) {
-                println!("{}|   |        |        |        |        |   |", spacer);
-                println!("{}|   |{:^8}|{:^8}|{:^8}|{:^8}|   |", spacer, row[0], row[1], row[2], row[3]);
-            }
+            // print middle area
+            println!("{}|   |{:^8}|{:^8}|{:^8}|{:^8}|   |",             spacer, tiles[0], tiles[1], tiles[2], tiles[3]);
+            println!("{}|   |--------|--------|--------|--------|   |", spacer);
+            println!("{}|   |{:^8}|{:^8}|{:^8}|{:^8}|   |",             spacer, tiles[4], tiles[5], tiles[6], tiles[7]);
+            println!("{}|   |--------|--------|--------|--------|   |", spacer);
+            println!("{}|   |{:^8}|{:^8}|{:^8}|{:^8}|   |",             spacer, tiles[8], tiles[9], tiles[10], tiles[11]);
+            println!("{}|   |--------|--------|--------|--------|   |", spacer);
+            println!("{}|   |{:^8}|{:^8}|{:^8}|{:^8}|   |",             spacer, tiles[12], tiles[13], tiles[14], tiles[15]);
 
             // print bottom area
             println!("{}|   |________|________|________|________|   |", spacer);
@@ -56,6 +61,5 @@ mod tfe {
 
 fn main() {
     let game = tfe::Container { board: 0x000A_0000_0000_002B_u64, margin: 10 };
-
     game.print();
 }
