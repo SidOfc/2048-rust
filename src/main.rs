@@ -21,10 +21,10 @@ mod tfe {
 
     #[derive(Debug)]
     pub struct Moves {
-        pub left: Vec<u64>,
+        pub left:  Vec<u64>,
         pub right: Vec<u64>,
-        pub down: Vec<u64>,
-        pub up: Vec<u64>
+        pub down:  Vec<u64>,
+        pub up:    Vec<u64>
     }
 
     // game state.
@@ -38,6 +38,28 @@ mod tfe {
 
     // game functions.
     impl Game {
+        pub fn move_right(&mut self) {
+            let mut result: u64 = self.board;
+
+            result ^= self.moves.right[((self.board >>  0) & ROW_MASK) as usize] <<  0;
+            result ^= self.moves.right[((self.board >> 16) & ROW_MASK) as usize] << 16;
+            result ^= self.moves.right[((self.board >> 32) & ROW_MASK) as usize] << 32;
+            result ^= self.moves.right[((self.board >> 48) & ROW_MASK) as usize] << 48;
+
+            self.board = result;
+        }
+
+        pub fn move_left(&mut self) {
+            let mut result: u64 = self.board;
+
+            result ^= self.moves.left[((self.board >>  0) & ROW_MASK) as usize] <<  0;
+            result ^= self.moves.left[((self.board >> 16) & ROW_MASK) as usize] << 16;
+            result ^= self.moves.left[((self.board >> 32) & ROW_MASK) as usize] << 32;
+            result ^= self.moves.left[((self.board >> 48) & ROW_MASK) as usize] << 48;
+
+            self.board = result;
+        }
+
         // print board from self.board
         pub fn print(&self) {
             let spacer: String  = " ".repeat(10);
@@ -75,13 +97,15 @@ fn main() {
     let mut up_moves    = vec![0; 65536];
     let mut down_moves  = vec![0; 65536];
 
+    // debug
+    // let row = 0x1111;
     for row in 0..65536 {
         // break row into cells
         let mut line = [
-            (row >>  0) & 0xf,
-            (row >>  4) & 0xf,
-            (row >>  8) & 0xf,
-            (row >> 12) & 0xf
+            (row >>  0) & 0xF,
+            (row >>  4) & 0xF,
+            (row >>  8) & 0xF,
+            (row >> 12) & 0xF
         ];
 
         let mut i = 0;
@@ -102,11 +126,11 @@ fn main() {
             if line[i] == 0 {
                 line[i] = line[j];
                 line[j] = 0;
-                if i > 0 { i = i - 1 };
+                if i > 0 { i = i - 1 } else { break };
 
             // otherwise, if the current cell and next cell are the same, merge them
             } else if line[i] == line[j] {
-                if line[i] != 0xf { line[i] += 1 };
+                if line[i] != 0xF { line[i] += 1 };
                 line[j] = 0;
             }
 
@@ -115,19 +139,40 @@ fn main() {
         }
 
         // put the new row after merging back together into a "merged" row
-        let result: u64 = (line[0] <<  0) |
-                          (line[1] <<  4) |
-                          (line[2] <<  8) |
-                          (line[3] << 12);
+        let result = (line[0] <<  0) |
+                     (line[1] <<  4) |
+                     (line[2] <<  8) |
+                     (line[3] << 12);
 
-        // add xorred result to table so we can xor it back into the result board during runtime
-        // for now, only left table is implemented, the other directions require additional
-        // functions so we'll focus on left for now
-        left_moves[(row as usize)] = row ^ result;
+        let rev_row = (row    >> 12) & 0x000F | (row    >> 4) & 0x00F0 | (row    << 4) & 0x0F00 | (row    << 12) & 0xF000;
+        let rev_res = (result >> 12) & 0x000F | (result >> 4) & 0x00F0 | (result << 4) & 0x0F00 | (result << 12) & 0xF000;
+        let row_idx = row     as usize;
+        let rev_idx = rev_row as usize;
+
+        // println!("row_idx: {:016x}", row_idx);
+        // println!("rev_idx: {:016x}", rev_idx);
+        // println!("rev_row: {:016x}", rev_row);
+        // println!("rev_res: {:016x}", rev_res);
+
+        right_moves[row_idx] = row ^ result;
+        left_moves[rev_idx]  = rev_row ^ rev_res;
     };
 
-    let moves    = tfe::Moves { left: left_moves, right: right_moves, down: down_moves, up: up_moves };
-    let mut game = tfe::Game  { board: 0x0000_0011_0000_0000_u64, moves: moves };
+    // let sample   = 0x1234;
+    // let rev_smpl = ((sample >> 12) & 0x000F) | ((sample >> 4) & 0x00F0) | ((sample << 4) & 0x0F00) | ((sample << 12) & 0xF000);
 
-    println!("{:?}", game);
+    // println!("{:04x} {:04x}", sample, rev_smpl);
+    // return;
+
+
+    let moves    = tfe::Moves { left: left_moves, right: right_moves, down: down_moves, up: up_moves };
+    // for mv in 1..65536 {
+    //     if moves.left[mv as usize] != 0 { println!("{:04x}: {:016x}", mv, moves.left[mv as usize]) };
+    // }
+    // println!("{:016x}", moves.left[row as usize]);
+    let mut game = tfe::Game  { board: 0x2211_0000_0000_0000_u64, moves: moves };
+
+    // game.print();
+    game.move_left();
+    game.print();
 }
