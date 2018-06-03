@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 // references:
 //  - https://github.com/nneonneo/2048-ai/blob/master/2048.h
 //  - https://github.com/nneonneo/2048-ai/blob/master/2048.cpp
@@ -19,7 +17,6 @@ mod tfe {
     // used to extract a "vertical slice" out of a 64 bit integer.
     static COL_MASK: u64 = 0x000F_000F_000F_000F_u64;
 
-    #[derive(Debug)]
     pub struct Moves {
         pub left:  Vec<u64>,
         pub right: Vec<u64>,
@@ -30,14 +27,59 @@ mod tfe {
     // game state.
     // includes margin property to offset printing the board
     // from the left edge of the screen.
-    #[derive(Debug)]
     pub struct Game {
         pub board: u64,
         pub moves: Moves
     }
 
+    // board helpers
+    pub struct Board;
+    impl Board {
+        pub fn transpose(board: u64) -> u64 {
+            let a1 = board & 0xF0F0_0F0F_F0F0_0F0F_u64;
+            let a2 = board & 0x0000_F0F0_0000_F0F0_u64;
+            let a3 = board & 0x0F0F_0000_0F0F_0000_u64;
+
+            let a  = a1 | (a2 << 12) | (a3 >> 12);
+
+            let b1 = a & 0xFF00_FF00_00FF_00FF_u64;
+            let b2 = a & 0x00FF_00FF_0000_0000_u64;
+            let b3 = a & 0x0000_0000_FF00_FF00_u64;
+
+            return b1 | (b2 >> 24) | (b3 << 24);
+        }
+
+        pub fn column_from(row: u64) -> u64 {
+            return (row | row << 12 | row << 24 | row << 36) & COL_MASK;
+        }
+    }
+
     // game functions.
     impl Game {
+        pub fn move_up(&mut self) {
+            let mut result: u64 = self.board;
+            let transposed      = ::tfe::Board::transpose(self.board);
+
+            result ^= self.moves.up[((transposed >>  0) & ROW_MASK) as usize] <<  0;
+            result ^= self.moves.up[((transposed >> 16) & ROW_MASK) as usize] <<  4;
+            result ^= self.moves.up[((transposed >> 32) & ROW_MASK) as usize] <<  8;
+            result ^= self.moves.up[((transposed >> 48) & ROW_MASK) as usize] << 12;
+
+            self.board = result;
+        }
+
+        pub fn move_down(&mut self) {
+            let mut result: u64 = self.board;
+            let transposed      = ::tfe::Board::transpose(self.board);
+
+            result ^= self.moves.down[((transposed >>  0) & ROW_MASK) as usize] <<  0;
+            result ^= self.moves.down[((transposed >> 16) & ROW_MASK) as usize] <<  4;
+            result ^= self.moves.down[((transposed >> 32) & ROW_MASK) as usize] <<  8;
+            result ^= self.moves.down[((transposed >> 48) & ROW_MASK) as usize] << 12;
+
+            self.board = result;
+        }
+
         pub fn move_right(&mut self) {
             let mut result: u64 = self.board;
 
@@ -154,8 +196,10 @@ fn main() {
         // println!("rev_row: {:016x}", rev_row);
         // println!("rev_res: {:016x}", rev_res);
 
-        right_moves[row_idx] = row ^ result;
-        left_moves[rev_idx]  = rev_row ^ rev_res;
+        right_moves[row_idx] = row                              ^ result;
+        left_moves[rev_idx]  = rev_row                          ^ rev_res;
+        up_moves[rev_idx]    = tfe::Board::column_from(rev_row) ^ tfe::Board::column_from(rev_res);
+        down_moves[row_idx]  = tfe::Board::column_from(row)     ^ tfe::Board::column_from(result);
     };
 
     // let sample   = 0x1234;
@@ -164,15 +208,18 @@ fn main() {
     // println!("{:04x} {:04x}", sample, rev_smpl);
     // return;
 
-
-    let moves    = tfe::Moves { left: left_moves, right: right_moves, down: down_moves, up: up_moves };
     // for mv in 1..65536 {
     //     if moves.left[mv as usize] != 0 { println!("{:04x}: {:016x}", mv, moves.left[mv as usize]) };
     // }
     // println!("{:016x}", moves.left[row as usize]);
-    let mut game = tfe::Game  { board: 0x2211_0000_0000_0000_u64, moves: moves };
 
-    // game.print();
-    game.move_left();
+
+    let moves    = tfe::Moves { left: left_moves, right: right_moves, down: down_moves, up: up_moves };
+    let mut game = tfe::Game  { board: 0x1000_1000_2000_2000_u64, moves: moves };
     game.print();
+    game.move_down();
+    game.print();
+
+    // let game = tfe::Game { board: 0x2211_3344_0000_0000_u64, moves: moves };
+    // println!("{:016x}", tfe::Board::transpose(game.board));
 }
