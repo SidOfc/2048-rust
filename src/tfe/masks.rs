@@ -9,5 +9,3 @@ pub static VAL_MASK: u64 = 0x0000_0000_0000_000F_u64;
 // a 64bit mask with 4 sections each starting after the n * 16th bit.
 // used to extract a "vertical slice" out of a 64 bit integer.
 pub static COL_MASK: u64 = 0x000F_000F_000F_000F_u64;
-
-

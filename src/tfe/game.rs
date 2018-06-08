@@ -1,17 +1,17 @@
 use super::moves::Moves;
-use super::masks::{ROW_MASK};
+use super::masks::ROW_MASK;
 use super::helpers::Helpers;
 
 // game state.
 // includes margin property to offset printing the board
 // from the left edge of the screen.
-pub struct Game {
+pub struct Game<'a> {
     pub board: u64,
-    pub moves: Moves
+    pub moves: &'a Moves
 }
 
 // game functions.
-impl Game {
+impl<'a> Game<'a> {
     pub fn move_up(&mut self) {
         let mut result: u64 = self.board;
         let transposed      = Helpers::transpose(self.board);

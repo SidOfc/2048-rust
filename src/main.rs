@@ -1,3 +1,6 @@
+// silence warning about unused methods
+#[allow(dead_code)]
+
 mod tfe;
 use tfe::{Moves, Game, Helpers};
 
@@ -7,9 +10,15 @@ use tfe::{Moves, Game, Helpers};
 
 fn main() {
     let moves = Moves::generate();
-    let mut g = Game { board: 0x2200_2200_1133_1122_u64, moves: moves };
 
-    Helpers::print(g.board);
-    g.move_down();
-    Helpers::print(g.board);
+    // up + down test
+    // let mut gud = Game { board: 0x2211_2211_1122_1122_u64, moves: &moves };
+
+    // left + right test
+    let mut glr = Game { board: 0x2121_2121_1122_1122_u64, moves: &moves };
+
+    Helpers::print(glr.board);
+    glr.move_up();
+    glr.move_left();
+    Helpers::print(glr.board);
 }
