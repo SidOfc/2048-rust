@@ -14,15 +14,15 @@ impl Helpers {
         let b2 = a & 0x00FF_00FF_0000_0000_u64;
         let b3 = a & 0x0000_0000_FF00_FF00_u64;
 
-        return b1 | (b2 >> 24) | (b3 << 24);
+        b1 | (b2 >> 24) | (b3 << 24)
     }
 
     pub fn column_from(row: u64) -> u64 {
-        return (row | (row << 12) | (row << 24) | (row << 36)) & COL_MASK;
+        (row | (row << 12) | (row << 24) | (row << 36)) & COL_MASK
     }
 
     pub fn print(board: u64) {
-        let spacer: String  = " ".repeat(10);
+        let spacer: String  = " ".repeat(0);
 
         // map 4 bits to one digit, 64 bits / 16 cells / 4 bits per cell.
         let cells: Vec<u64> = (0..16).rev().map(|n| 1_u64 << (board >> (n << 2) & VAL_MASK))

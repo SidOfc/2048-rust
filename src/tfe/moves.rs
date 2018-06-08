@@ -1,3 +1,4 @@
+use std::slice::Iter;
 use super::Helpers;
 
 // container for moves.
@@ -7,6 +8,26 @@ pub struct Moves {
     pub down:   Vec<u64>,
     pub up:     Vec<u64>,
     pub scores: Vec<u64>
+}
+
+pub enum Direction {
+    Left,
+    Right,
+    Up,
+    Down
+}
+
+impl Direction {
+    pub fn iterator() -> Iter<'static, Direction> {
+        static DIRECTIONS: [Direction; 4] = [
+            Direction::Left,
+            Direction::Right,
+            Direction::Up,
+            Direction::Down
+        ];
+
+        DIRECTIONS.into_iter()
+    }
 }
 
 impl Moves {
@@ -95,6 +116,6 @@ impl Moves {
             down_moves[row_idx]  = Helpers::column_from(row)     ^ Helpers::column_from(result);
         };
 
-        return Moves { left: left_moves, right: right_moves, down: down_moves, up: up_moves, scores: scores };
+        Moves { left: left_moves, right: right_moves, down: down_moves, up: up_moves, scores: scores }
     }
 }

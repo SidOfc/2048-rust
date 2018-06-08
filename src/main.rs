@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate lazy_static;
+extern crate rand;
 
 // silence warning about unused methods
 #[allow(dead_code)]
@@ -12,10 +13,7 @@ use tfe::{Game, Helpers};
 //  - https://github.com/nneonneo/2048-ai/blob/master/2048.cpp
 
 fn main() {
-    let mut g = Game::new();
-
+    let g = Game::play();
     Helpers::print(g.board);
-    g.move_up();
-    Helpers::print(g.board);
-    println!("{}", g.score());
+    println!("done! score: {:?}", g.score());
 }
