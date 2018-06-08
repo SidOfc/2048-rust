@@ -45,17 +45,13 @@ impl Moves {
                 // if j is out of bounds (> 3), all other cells are empty and we are done looping
                 if j == 4 { break };
 
+                // this is the part responsible for skipping empty (0 value) cells
                 // if the current cell is zero, shift the next non-zero cell to position i
-                // also decrement i by 1 to check the entry that we just moved in the next iteration
+                // and retry this entry until line[i] becomes non-zero
                 if line[i] == 0 {
                     line[i] = line[j];
                     line[j] = 0;
-                    if i > 0 {
-                        i = i - 1;
-                        // go straight to next iteration instead of doing the final i = i + 1 which
-                        // would negate the i = i - 1 we just did
-                        continue;
-                    };
+                    continue;
 
                 // otherwise, if the current cell and next cell are the same, merge them
                 } else if line[i] == line[j] {
