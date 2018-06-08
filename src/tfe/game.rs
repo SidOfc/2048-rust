@@ -16,7 +16,14 @@ pub struct Game {
 // game functions.
 impl Game {
     pub fn new() -> Self {
-        return Game { board: 0x0001_0001_0002_0002_u64 };
+        return Game { board: 0x0000_0000_0000_0000_u64 };
+    }
+
+    pub fn score(&self) -> u64 {
+        return MOVES.scores[((self.board >>  0) & ROW_MASK) as usize] +
+               MOVES.scores[((self.board >> 16) & ROW_MASK) as usize] +
+               MOVES.scores[((self.board >> 32) & ROW_MASK) as usize] +
+               MOVES.scores[((self.board >> 48) & ROW_MASK) as usize];
     }
 
     pub fn move_up(&mut self) {

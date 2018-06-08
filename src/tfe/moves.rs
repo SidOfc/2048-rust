@@ -2,10 +2,11 @@ use super::Helpers;
 
 // container for moves.
 pub struct Moves {
-    pub left:  Vec<u64>,
-    pub right: Vec<u64>,
-    pub down:  Vec<u64>,
-    pub up:    Vec<u64>
+    pub left:   Vec<u64>,
+    pub right:  Vec<u64>,
+    pub down:   Vec<u64>,
+    pub up:     Vec<u64>,
+    pub scores: Vec<u64>
 }
 
 impl Moves {
@@ -15,6 +16,7 @@ impl Moves {
         let mut right_moves = vec![0; 65536];
         let mut up_moves    = vec![0; 65536];
         let mut down_moves  = vec![0; 65536];
+        let mut scores      = vec![0; 65536];
 
         // debug
         // let row = 0x1111;
@@ -26,6 +28,15 @@ impl Moves {
                 (row >>  8) & 0xF,
                 (row >> 12) & 0xF
             ];
+
+            // calculate score for given row
+            let mut s = 0;
+
+            for i in 0..4 {
+                if line[i] >= 2 { s += (line[i] - 1) * (1 << line[i]) }
+            }
+
+            scores[row as usize] = s;
 
             let mut i = 0;
 
@@ -84,6 +95,6 @@ impl Moves {
             down_moves[row_idx]  = Helpers::column_from(row)     ^ Helpers::column_from(result);
         };
 
-        return Moves { left: left_moves, right: right_moves, down: down_moves, up: up_moves };
+        return Moves { left: left_moves, right: right_moves, down: down_moves, up: up_moves, scores: scores };
     }
 }

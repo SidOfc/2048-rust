@@ -17,4 +17,5 @@ fn main() {
     Helpers::print(g.board);
     g.move_up();
     Helpers::print(g.board);
+    println!("{}", g.score());
 }
