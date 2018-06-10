@@ -5,4 +5,5 @@ authors = ["Sidney Liebrand <sidneyliebrand@gmail.com>"]
 
 [dependencies]
 lazy_static = "1.0"
-rand        = "0.5.0"
+rand        = "0.5"
+clap        = "2.31"
