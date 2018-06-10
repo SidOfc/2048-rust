@@ -1,4 +1,3 @@
-use std::slice::Iter;
 use super::Helpers;
 
 // container for moves.
@@ -10,6 +9,7 @@ pub struct Moves {
     pub scores: Vec<u64>
 }
 
+#[derive(Debug)]
 pub enum Direction {
     Left,
     Right,
@@ -18,15 +18,8 @@ pub enum Direction {
 }
 
 impl Direction {
-    pub fn iterator() -> Iter<'static, Direction> {
-        static DIRECTIONS: [Direction; 4] = [
-            Direction::Left,
-            Direction::Right,
-            Direction::Up,
-            Direction::Down
-        ];
-
-        DIRECTIONS.into_iter()
+    pub fn vec() -> Vec<Direction> {
+        vec![Direction::Down, Direction::Left, Direction::Right, Direction::Up]
     }
 }
 

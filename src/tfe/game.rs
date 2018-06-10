@@ -9,48 +9,52 @@ lazy_static! {
     static ref MOVES: Moves = Moves::generate();
 }
 
-// game state.
-// includes margin property to offset printing the board
-// from the left edge of the screen.
+// game container.
 pub struct Game {
-    pub board: u64
+    pub board: u64,
+    pub mv: u64
 }
 
-// game functions.
 impl Game {
     pub fn new() -> Self {
-        let mut game = Game { board: 0x0000_0000_0000_0000_u64 };
+        let mut game = Game { board: 0x0000_0000_0000_0000_u64, mv: 0 };
 
-        game.spawn_tile()
-            .spawn_tile();
+        game.board |= game.spawn_tile();
+        game.board |= game.spawn_tile();
 
         game
     }
 
     pub fn play() -> Self {
         let mut game = Self::new();
-        let mut cntr = 0;
-        let mut cncl = 0;
 
         loop {
-            let b = game.board;
-            let m = game.move_random();
-            cntr += 1;
-            cncl += 1;
-            if cntr > 100_000_000 { break };
-            if cncl > 100 { break };
-            if game.count_empty() == 0 { break };
+            let mut moved = false;
+            for dir in &Direction::vec() {
+                let result_board = game.execute(&dir);
+                if game.board != result_board {
+                    // let empty   = game.count_empty();
+                    moved       = true;
+                    game.mv    += 1;
+                    game.board  = result_board;
+                    game.board |= game.spawn_tile();
 
-            if game.board == b { continue } else { cncl = 0 };
-            println!("moves: {:?} move: {:?} score: {:?} empty: {:?}", cntr, m, game.score(), game.count_empty());
+                    // Helpers::print(game.board);
+                    // if cntr > 1 { print!("\r") }
+                    // println!("moves: {:5} score: {:5} empty: {:5} move: {:?}", game.mv, game.score(), empty, &dir);
+                    // thread::sleep(Duration::from_millis(500))
 
-            thread::sleep(Duration::from_millis(100));
+                    break;
+                }
+            }
+
+            if !moved { break }
         }
 
         game
     }
 
-    pub fn execute(&mut self, direction: Direction) -> &mut Self {
+    pub fn execute(&self, direction: &Direction) -> u64 {
         match direction {
             Direction::Left  => self.move_left(),
             Direction::Right => self.move_right(),
@@ -66,29 +70,7 @@ impl Game {
         MOVES.scores[((self.board >> 48) & ROW_MASK) as usize]
     }
 
-    pub fn move_random(&mut self) -> &'static str {
-        match thread_rng().gen_range(0, 4) {
-            0 => {
-                self.execute(Direction::Left);
-                "left"
-            },
-            1 => {
-                self.execute(Direction::Right);
-                "right"
-            },
-            2 => {
-                self.execute(Direction::Up);
-                "up"
-            },
-            3 => {
-                self.execute(Direction::Down);
-                "down"
-            }
-            _ => "none"
-        }
-    }
-
-    pub fn move_up(&mut self) -> &mut Self {
+    pub fn move_up(&self) -> u64 {
         let mut result: u64 = self.board;
         let transposed      = Helpers::transpose(self.board);
 
@@ -97,15 +79,10 @@ impl Game {
         result ^= MOVES.up[((transposed >> 32) & ROW_MASK) as usize] <<  8;
         result ^= MOVES.up[((transposed >> 48) & ROW_MASK) as usize] << 12;
 
-        if self.board != result {
-            self.board = result;
-            self.spawn_tile();
-        }
-
-        self
+        result
     }
 
-    pub fn move_down(&mut self) -> &mut Self {
+    pub fn move_down(&self) -> u64 {
         let mut result: u64 = self.board;
         let transposed      = Helpers::transpose(self.board);
 
@@ -114,15 +91,10 @@ impl Game {
         result ^= MOVES.down[((transposed >> 32) & ROW_MASK) as usize] <<  8;
         result ^= MOVES.down[((transposed >> 48) & ROW_MASK) as usize] << 12;
 
-        if self.board != result {
-            self.board = result;
-            self.spawn_tile();
-        }
-
-        self
+        result
     }
 
-    pub fn move_right(&mut self) -> &mut Self {
+    pub fn move_right(&self) -> u64 {
         let mut result: u64 = self.board;
 
         result ^= MOVES.right[((self.board >>  0) & ROW_MASK) as usize] <<  0;
@@ -130,15 +102,10 @@ impl Game {
         result ^= MOVES.right[((self.board >> 32) & ROW_MASK) as usize] << 32;
         result ^= MOVES.right[((self.board >> 48) & ROW_MASK) as usize] << 48;
 
-        if self.board != result {
-            self.board = result;
-            self.spawn_tile();
-        }
-
-        self
+        result
     }
 
-    pub fn move_left(&mut self) -> &mut Self {
+    pub fn move_left(&self) -> u64 {
         let mut result: u64 = self.board;
 
         result ^= MOVES.left[((self.board >>  0) & ROW_MASK) as usize] <<  0;
@@ -146,19 +113,14 @@ impl Game {
         result ^= MOVES.left[((self.board >> 32) & ROW_MASK) as usize] << 32;
         result ^= MOVES.left[((self.board >> 48) & ROW_MASK) as usize] << 48;
 
-        if self.board != result {
-            self.board = result;
-            self.spawn_tile();
-        }
-
-        self
+        result
     }
 
     fn tile() -> u64 {
         if thread_rng().gen_range(0, 10) == 10 { 2 } else { 1 }
     }
 
-    fn spawn_tile(&mut self) -> &mut Self {
+    fn spawn_tile(&self) -> u64 {
         let mut tmp = self.board;
         let mut idx = thread_rng().gen_range(0, self.count_empty());
         let mut t   = Self::tile();
@@ -169,18 +131,20 @@ impl Game {
                 t   <<= 4;
             }
 
-            if idx == 0 { break } else { idx -= 1 };
+            if idx == 0 { break } else { idx -= 1 }
 
             tmp >>= 4;
-            t   <<= 4;
+            t   <<= 4
         }
 
-        self.board |= t;
-
-        self
+        t
     }
 
     fn count_empty(&self) -> u32 {
-        self.board.count_zeros() / 4
+        let mut empty = 0;
+
+        for i in 0..16 { if ((self.board >> (i * 4)) & 0xF) == 0 { empty += 1 } }
+
+        empty
     }
 }

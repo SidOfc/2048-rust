@@ -1,16 +1,14 @@
+extern crate rand;
+
 #[macro_use]
 extern crate lazy_static;
 
 #[macro_use]
 extern crate clap;
 
-extern crate rand;
-
-// silence warning about unused methods
-#[allow(dead_code)]
-
 mod tfe;
-use tfe::{Game, Helpers};
+use tfe::Game;
+use std::thread;
 
 // references:
 //  - https://github.com/nneonneo/2048-ai/blob/master/2048.h
@@ -31,4 +29,19 @@ fn main() {
     let count   = arguments.value_of("count").unwrap_or("1").parse::<i32>().unwrap();
     let threads = arguments.value_of("threads").unwrap_or("1").parse::<i32>().unwrap();
     let per_t   = (count / threads) as i32;
+
+    let mut handles = vec![];
+
+    for tcount in 0..threads {
+        handles.push(thread::spawn(move || {
+            for gcount in 0..per_t {
+                let g = Game::play();
+                if verbose {
+                    println!("t:{:<5} | g:{:<5} | s:{:<6}", &tcount, &gcount, g.score())
+                }
+            }
+        }));
+    }
+
+    for h in handles { h.join().unwrap() }
 }
