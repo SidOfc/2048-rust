@@ -33,18 +33,12 @@ impl Game {
             for dir in &Direction::vec() {
                 let result_board = game.execute(&dir);
                 if game.board != result_board {
-                    // let empty   = game.count_empty();
                     moved       = true;
                     game.mv    += 1;
                     game.board  = result_board;
                     game.board |= game.spawn_tile();
 
-                    // Helpers::print(game.board);
-                    // if cntr > 1 { print!("\r") }
-                    // println!("moves: {:5} score: {:5} empty: {:5} move: {:?}", game.mv, game.score(), empty, &dir);
-                    // thread::sleep(Duration::from_millis(500))
-
-                    break;
+                    break
                 }
             }
 
