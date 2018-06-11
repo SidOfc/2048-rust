@@ -4,8 +4,9 @@ use std::thread::sleep;
 
 // board helpers
 pub struct Helpers;
+
+#[allow(dead_code)]
 impl Helpers {
-    #[allow(dead_code)]
     pub fn sleep(t: u64) -> u64 {
         sleep(Duration::from_millis(t));
         t
@@ -29,7 +30,6 @@ impl Helpers {
         (row | (row << 12) | (row << 24) | (row << 36)) & COL_MASK
     }
 
-    #[allow(dead_code)]
     pub fn print(board: u64) {
         let spacer: String  = " ".repeat(0);
 

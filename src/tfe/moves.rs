@@ -26,8 +26,8 @@ lazy_static! {
     static ref DIRECTIONS: Vec<Direction> = vec![Direction::Left, Direction::Right, Direction::Up, Direction::Down];
 }
 
+#[allow(dead_code)]
 impl Direction {
-    #[allow(dead_code)]
     pub fn sample() -> Direction {
         match rand::thread_rng().gen_range(0, 4) {
             0 => Direction::Left,
