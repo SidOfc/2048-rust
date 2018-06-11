@@ -32,7 +32,7 @@ impl Game {
             if mv == Direction::None || attempted.len() == 4 {
                 break
             } else if !attempted.iter().any(|dir| dir == &mv) {
-                let result_board = game.execute(&mv);
+                let result_board = Game::execute(game.board, &mv);
 
                 if game.board == result_board {
                     attempted.push(mv);
@@ -47,13 +47,13 @@ impl Game {
         game
     }
 
-    pub fn execute(&self, direction: &Direction) -> u64 {
+    pub fn execute(board: u64, direction: &Direction) -> u64 {
         match direction {
-            Direction::Left  => self.move_left(),
-            Direction::Right => self.move_right(),
-            Direction::Down  => self.move_down(),
-            Direction::Up    => self.move_up(),
-            Direction::None  => self.board
+            Direction::Left  => Self::move_left(board),
+            Direction::Right => Self::move_right(board),
+            Direction::Down  => Self::move_down(board),
+            Direction::Up    => Self::move_up(board),
+            Direction::None  => board
         }
     }
 
@@ -64,9 +64,9 @@ impl Game {
         MOVES.scores[((self.board >> 48) & ROW_MASK) as usize]
     }
 
-    pub fn move_up(&self) -> u64 {
-        let mut result: u64 = self.board;
-        let transposed      = Helpers::transpose(self.board);
+    pub fn move_up(board: u64) -> u64 {
+        let mut result = board;
+        let transposed = Helpers::transpose(board);
 
         result ^= MOVES.up[((transposed >>  0) & ROW_MASK) as usize] <<  0;
         result ^= MOVES.up[((transposed >> 16) & ROW_MASK) as usize] <<  4;
@@ -76,9 +76,9 @@ impl Game {
         result
     }
 
-    pub fn move_down(&self) -> u64 {
-        let mut result: u64 = self.board;
-        let transposed      = Helpers::transpose(self.board);
+    pub fn move_down(board: u64) -> u64 {
+        let mut result = board;
+        let transposed = Helpers::transpose(board);
 
         result ^= MOVES.down[((transposed >>  0) & ROW_MASK) as usize] <<  0;
         result ^= MOVES.down[((transposed >> 16) & ROW_MASK) as usize] <<  4;
@@ -88,24 +88,24 @@ impl Game {
         result
     }
 
-    pub fn move_right(&self) -> u64 {
-        let mut result: u64 = self.board;
+    pub fn move_right(board: u64) -> u64 {
+        let mut result = board;
 
-        result ^= MOVES.right[((self.board >>  0) & ROW_MASK) as usize] <<  0;
-        result ^= MOVES.right[((self.board >> 16) & ROW_MASK) as usize] << 16;
-        result ^= MOVES.right[((self.board >> 32) & ROW_MASK) as usize] << 32;
-        result ^= MOVES.right[((self.board >> 48) & ROW_MASK) as usize] << 48;
+        result ^= MOVES.right[((board >>  0) & ROW_MASK) as usize] <<  0;
+        result ^= MOVES.right[((board >> 16) & ROW_MASK) as usize] << 16;
+        result ^= MOVES.right[((board >> 32) & ROW_MASK) as usize] << 32;
+        result ^= MOVES.right[((board >> 48) & ROW_MASK) as usize] << 48;
 
         result
     }
 
-    pub fn move_left(&self) -> u64 {
-        let mut result: u64 = self.board;
+    pub fn move_left(board: u64) -> u64 {
+        let mut result: u64 = board;
 
-        result ^= MOVES.left[((self.board >>  0) & ROW_MASK) as usize] <<  0;
-        result ^= MOVES.left[((self.board >> 16) & ROW_MASK) as usize] << 16;
-        result ^= MOVES.left[((self.board >> 32) & ROW_MASK) as usize] << 32;
-        result ^= MOVES.left[((self.board >> 48) & ROW_MASK) as usize] << 48;
+        result ^= MOVES.left[((board >>  0) & ROW_MASK) as usize] <<  0;
+        result ^= MOVES.left[((board >> 16) & ROW_MASK) as usize] << 16;
+        result ^= MOVES.left[((board >> 32) & ROW_MASK) as usize] << 32;
+        result ^= MOVES.left[((board >> 48) & ROW_MASK) as usize] << 48;
 
         result
     }
