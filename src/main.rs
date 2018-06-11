@@ -8,6 +8,7 @@ extern crate clap;
 
 mod tfe;
 use tfe::Game;
+use tfe::Direction;
 use std::thread;
 
 // references:
@@ -30,15 +31,17 @@ fn main() {
     let threads = arguments.value_of("threads").unwrap_or("1").parse::<i32>().unwrap();
     let per_t   = (count / threads) as i32;
 
+    // println!("{:?}", Direction::without(&vec![Direction::Left, Direction::Up]));
+    // return;
+
     let mut handles = vec![];
 
     for tcount in 0..threads {
         handles.push(thread::spawn(move || {
             for gcount in 0..per_t {
-                let g = Game::play();
-                if verbose {
-                    println!("t:{:<5} | g:{:<5} | s:{:<6}", &tcount, &gcount, g.score())
-                }
+                // let g = Game::play(|_game, attempted| Direction::without(&attempted));
+                let g = Game::play(|_game, _attempted| Direction::sample());
+                if verbose { println!("t:{:<5} | g:{:<5} | s:{:<6}", &tcount, &gcount, g.score()) }
             }
         }));
     }

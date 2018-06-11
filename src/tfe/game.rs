@@ -2,8 +2,6 @@ use rand::{thread_rng, Rng};
 use super::moves::{Moves, Direction};
 use super::masks::ROW_MASK;
 use super::helpers::Helpers;
-use std::time::Duration;
-use std::thread;
 
 lazy_static! {
     static ref MOVES: Moves = Moves::generate();
@@ -11,13 +9,12 @@ lazy_static! {
 
 // game container.
 pub struct Game {
-    pub board: u64,
-    pub mv: u64
+    pub board: u64
 }
 
 impl Game {
     pub fn new() -> Self {
-        let mut game = Game { board: 0x0000_0000_0000_0000_u64, mv: 0 };
+        let mut game = Game { board: 0x0000_0000_0000_0000_u64 };
 
         game.board |= game.spawn_tile();
         game.board |= game.spawn_tile();
@@ -25,24 +22,26 @@ impl Game {
         game
     }
 
-    pub fn play() -> Self {
+    pub fn play<'a, F: Fn(u64, &Vec<Direction>) -> Direction>(mv: F) -> Self {
         let mut game = Self::new();
+        let mut attempted: Vec<Direction> = Vec::with_capacity(4);
 
         loop {
-            let mut moved = false;
-            for dir in &Direction::vec() {
-                let result_board = game.execute(&dir);
-                if game.board != result_board {
-                    moved       = true;
-                    game.mv    += 1;
+            let mv = mv(game.board, &attempted);
+
+            if mv == Direction::None || attempted.len() == 4 {
+                break
+            } else if !attempted.iter().any(|dir| dir == &mv) {
+                let result_board = game.execute(&mv);
+
+                if game.board == result_board {
+                    attempted.push(mv);
+                } else {
                     game.board  = result_board;
                     game.board |= game.spawn_tile();
-
-                    break
+                    attempted.clear();
                 }
             }
-
-            if !moved { break }
         }
 
         game
@@ -52,8 +51,9 @@ impl Game {
         match direction {
             Direction::Left  => self.move_left(),
             Direction::Right => self.move_right(),
+            Direction::Down  => self.move_down(),
             Direction::Up    => self.move_up(),
-            Direction::Down  => self.move_down()
+            Direction::None  => self.board
         }
     }
 

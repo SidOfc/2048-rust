@@ -1,4 +1,6 @@
 use super::Helpers;
+use rand;
+use rand::Rng;
 
 // container for moves.
 pub struct Moves {
@@ -10,16 +12,40 @@ pub struct Moves {
 }
 
 #[derive(Debug)]
+#[derive(Clone)]
+#[derive(PartialEq)]
 pub enum Direction {
     Left,
     Right,
     Up,
-    Down
+    Down,
+    None
+}
+
+lazy_static! {
+    static ref DIRECTIONS: Vec<Direction> = vec![Direction::Left, Direction::Right, Direction::Up, Direction::Down];
 }
 
 impl Direction {
-    pub fn vec() -> Vec<Direction> {
-        vec![Direction::Down, Direction::Left, Direction::Right, Direction::Up]
+    #[allow(dead_code)]
+    pub fn sample() -> Direction {
+        match rand::thread_rng().gen_range(0, 4) {
+            0 => Direction::Left,
+            1 => Direction::Right,
+            2 => Direction::Down,
+            3 => Direction::Up,
+            _ => Direction::None
+        }
+    }
+
+    pub fn without(dirs: &Vec<Direction>) -> Direction {
+        let mut filtered = DIRECTIONS.clone();
+
+        filtered.retain(|dir| dirs.iter().all(|tried| &dir != &tried));
+
+        let filtered_len = filtered.len();
+
+        if filtered_len == 0 { Direction::None } else { filtered[rand::thread_rng().gen_range(0, filtered.len())].clone() }
     }
 }
 
