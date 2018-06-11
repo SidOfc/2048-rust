@@ -38,14 +38,19 @@ impl Direction {
         }
     }
 
-    pub fn without(dirs: &Vec<Direction>) -> Direction {
+    pub fn without(dirs: &Vec<Direction>) -> Vec<Direction> {
         let mut filtered = DIRECTIONS.clone();
-
         filtered.retain(|dir| dirs.iter().all(|tried| &dir != &tried));
+        filtered
+    }
 
+    pub fn sample_without(dirs: &Vec<Direction>) -> Direction {
+        let filtered     = &Self::without(dirs);
         let filtered_len = filtered.len();
 
-        if filtered_len == 0 { Direction::None } else { filtered[rand::thread_rng().gen_range(0, filtered.len())].clone() }
+        if filtered_len == 0 { return Direction::None }
+
+        filtered[rand::thread_rng().gen_range(0, filtered.len())].clone()
     }
 }
 
