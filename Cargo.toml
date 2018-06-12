@@ -14,4 +14,4 @@ path = "src/lib.rs"
 
 [[bin]]
 name = "2048"
-path = "src/bin.rs"
+path = "src/bin/2048.rs"
