@@ -24,10 +24,24 @@ fn main() {
                         (name: "2048.rs")
                         (version: "0.1.0")
                         (author: "Sidney Liebrand <sidneyliebrand@gmail.com>")
-                        (about: "a 2048 implementation using bit shifting based on github user 'nneonneo'.")
-                        (@arg quiet: -q --quiet "don't print score after each game")
-                        (@arg count: -c --count [COUNT] +takes_value "set the number of games played")
-                        (@arg threads: -t --threads [COUNT] +takes_value "set the number of threads,\n[count/threads] games per thread.")
+                        (about: "2048 implemented using bit shifting based on github user nneonneo's c++ implementation")
+                        (@arg quiet: -q --quiet "don't print output")
+                        (@arg count: -c --count [COUNT] +takes_value {|val| {
+                                if val.parse::<i32>().is_ok() {
+                                    if val.parse::<i32>().unwrap() > 0 { return Ok(()) }
+                                    Err(String::from("value must be >= 1"))
+                                } else {
+                                    Err(String::from("value must be a number!"))
+                                }
+                            }} "set the number of games played\n<COUNT> default: 1, min: 1\n ")
+                        (@arg threads: -t --threads [THREADS] +takes_value {|val| {
+                                if val.parse::<i32>().is_ok() {
+                                    if val.parse::<i32>().unwrap() > 0 { return Ok(()) }
+                                    Err(String::from("value must be >= 1"))
+                                } else {
+                                    Err(String::from("value must be a number!"))
+                                }
+                            }} "[<COUNT>/<THREADS>] games played per thread\n<THREADS> default: 1, min: 1\n ")
                     ).get_matches();
 
     let verbose = !arguments.is_present("quiet");
