@@ -93,7 +93,7 @@ impl Moves {
                 // find the next non-zero cell index
                 while j < 4 {
                     if line[j] != 0 { break };
-                    j = j + 1;
+                    j += 1;
                 };
 
                 // if j is out of bounds (> 3), all other cells are empty and we are done looping
@@ -114,7 +114,7 @@ impl Moves {
                 }
 
                 // finally, move to the next (or current, if i was 0) row
-                i = i + 1;
+                i += 1;
             }
 
             // put the new row after merging back together into a "merged" row
