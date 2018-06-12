@@ -63,7 +63,7 @@ impl Moves {
         let mut down_moves  = vec![0; 65536];
         let mut scores      = vec![0; 65536];
 
-        for row in 0..65536 {
+        for row in 0 .. 65536 {
             // break row into cells
             let mut line = [
                 (row >>  0) & 0xF,
@@ -75,7 +75,7 @@ impl Moves {
             // calculate score for given row
             let mut s = 0;
 
-            for i in 0..4 {
+            for i in 0 .. 4 {
                 if line[i] >= 2 { s += (line[i] - 1) * (1 << line[i]) }
             }
 

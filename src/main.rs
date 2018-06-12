@@ -9,7 +9,10 @@ extern crate clap;
 mod tfe;
 use tfe::Game;
 use tfe::Direction;
-use std::thread;
+
+use std::thread::spawn;
+use std::sync::mpsc;
+use std::sync::mpsc::{Sender, Receiver};
 
 // references:
 //  - https://github.com/nneonneo/2048-ai/blob/master/2048.h
@@ -48,17 +51,24 @@ fn main() {
     let count   = arguments.value_of("count").unwrap_or("1").parse::<i32>().unwrap();
     let threads = arguments.value_of("threads").unwrap_or("1").parse::<i32>().unwrap();
     let per_t   = (count / threads) as i32;
+    let end_c   = (threads * per_t) as usize;
 
-    let mut handles = vec![];
+    let (tx, rx): (Sender<u64>, Receiver<u64>) = mpsc::channel();
+    let mut results: Vec<u64> = Vec::with_capacity(end_c - 1);
 
-    for tcount in 0..threads {
-        handles.push(thread::spawn(move || {
-            for gcount in 0..per_t {
-                let g = Game::play(|board, attempted| next_move(board, attempted));
-                if verbose { println!("{:<6} | t:{:<5} | g:{:<5}", Game::score(g.board), &tcount, &gcount) }
-            }
-        }));
+    for _ in 0 .. threads {
+        let ttx = tx.clone();
+
+        spawn(move || for _ in 0 .. per_t { ttx.send(Game::play(|b, failed| next_move(b, failed)).board).unwrap() });
     }
 
-    for h in handles { h.join().unwrap() }
+    for _ in 0 .. end_c { results.push(rx.recv().unwrap()) }
+
+    let avg  = results.iter().fold(0, |mut total, &board| {total += Game::score(board); total}) as f64 / end_c as f64;
+    let best = results.iter().max().unwrap();
+
+    println!("count: {}, threads: {}, per_t: {}", count, threads, per_t);
+    println!("played: {}", end_c);
+    println!("average score: {}", avg);
+    println!("best board: {}", Game::score(*best));
 }
