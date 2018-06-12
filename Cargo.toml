@@ -7,3 +7,11 @@ authors = ["Sidney Liebrand <sidneyliebrand@gmail.com>"]
 lazy_static = "1.0"
 rand        = "0.5"
 clap        = "2.31"
+
+[lib]
+name = "tfe"
+path = "src/lib.rs"
+
+[[bin]]
+name = "2048"
+path = "src/bin.rs"

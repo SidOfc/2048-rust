@@ -1,12 +1,8 @@
-extern crate rand;
-
-#[macro_use]
-extern crate lazy_static;
-
 #[macro_use]
 extern crate clap;
 
-mod tfe;
+extern crate tfe;
+
 use tfe::Game;
 use tfe::Direction;
 
@@ -47,7 +43,7 @@ fn main() {
                             }} "[<COUNT>/<THREADS>] games played per thread\n<THREADS> default: 1, min: 1\n ")
                     ).get_matches();
 
-    let verbose = !arguments.is_present("quiet");
+    // let verbose = !arguments.is_present("quiet");
     let count   = arguments.value_of("count").unwrap_or("1").parse::<i32>().unwrap();
     let threads = arguments.value_of("threads").unwrap_or("1").parse::<i32>().unwrap();
     let per_t   = (count / threads) as i32;
@@ -71,4 +67,28 @@ fn main() {
     println!("played: {}", end_c);
     println!("average score: {}", avg);
     println!("best board: {}", Game::score(*best));
+
+    let mut best_copy1 = best.clone();
+    let mut best_copy2 = best.clone();
+
+    println!();
+    for i in 0 .. 4 {
+        for _ in 0 .. 4 {
+            let pow = best_copy1 & 0xF;
+            let val = if pow == 0 { 0 } else { 2 << pow };
+
+            print!("{:5}", val);
+            best_copy1 >>= 4;
+        }
+
+        print!("       ");
+        for _ in 0 .. 4 {
+            print!("  {:2}", best_copy2 & 0xF);
+            best_copy2 >>= 4;
+        }
+
+        println!();
+        if i == 1 { print!("                        =>   ") }
+        println!();
+    }
 }

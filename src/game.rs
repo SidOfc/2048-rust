@@ -1,5 +1,7 @@
+extern crate rand;
+
 use super::moves::{Moves, Direction};
-use rand::{thread_rng, Rng};
+use self::rand::{thread_rng, Rng};
 
 lazy_static! { static ref MOVES: Moves = Moves::generate(); }
 
@@ -14,6 +16,28 @@ pub static COL_MASK: u64 = 0x000F_000F_000F_000F;
 // game container.
 pub struct Game { pub board: u64 }
 impl Game {
+    /// Constructs a new `tfe::Game`.
+    ///
+    /// `Game` stores a board internally as a `u64`.
+    ///
+    /// # Examples
+    ///
+    /// Simple example:
+    ///
+    /// ```
+    /// use tfe::Game;
+    ///
+    /// let mut game = Game::new();
+    /// # println!("{:016x}", game.board);
+    /// ```
+    ///
+    /// Accessing board value:
+    /// ```
+    /// use tfe::Game;
+    ///
+    /// let mut game = Game::new();
+    /// println!("{:016x}", game.board);
+    /// ```
     pub fn new() -> Self {
         let mut game = Game { board: 0x0000_0000_0000_0000_u64 };
 

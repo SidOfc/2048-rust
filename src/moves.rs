@@ -1,6 +1,7 @@
+extern crate rand;
+
 use super::Game;
-use rand::Rng;
-use rand;
+use self::rand::Rng;
 
 // container for moves.
 pub struct Moves {
@@ -11,7 +12,6 @@ pub struct Moves {
     pub scores: Vec<u64>
 }
 
-#[derive(Debug)]
 #[derive(Clone)]
 #[derive(PartialEq)]
 pub enum Direction {
@@ -26,7 +26,6 @@ lazy_static! {
     static ref DIRECTIONS: Vec<Direction> = vec![Direction::Left, Direction::Right, Direction::Up, Direction::Down];
 }
 
-#[allow(dead_code)]
 impl Direction {
     pub fn sample() -> Direction {
         match rand::thread_rng().gen_range(0, 4) {
