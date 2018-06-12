@@ -1,4 +1,3 @@
-mod masks;
 mod moves;
 mod game;
 
