@@ -23,7 +23,7 @@ impl Game {
         game
     }
 
-    pub fn play<'a, F: Fn(u64, &Vec<Direction>) -> Direction>(mv: F) -> Self {
+    pub fn play<F: Fn(u64, &Vec<Direction>) -> Direction>(mv: F) -> Self {
         let mut game = Self::new();
         let mut attempted: Vec<Direction> = Vec::with_capacity(4);
 

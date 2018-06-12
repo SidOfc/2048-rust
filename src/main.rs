@@ -15,7 +15,7 @@ use std::thread;
 //  - https://github.com/nneonneo/2048-ai/blob/master/2048.h
 //  - https://github.com/nneonneo/2048-ai/blob/master/2048.cpp
 
-fn next_move(board: u64, attempted: &Vec<Direction>) -> Direction {
+fn next_move(_board: u64, attempted: &Vec<Direction>) -> Direction {
     Direction::sample_without(attempted)
 }
 
