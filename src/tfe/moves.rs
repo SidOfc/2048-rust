@@ -1,6 +1,6 @@
-use super::Helpers;
-use rand;
+use super::Game;
 use rand::Rng;
+use rand;
 
 // container for moves.
 pub struct Moves {
@@ -134,10 +134,10 @@ impl Moves {
             let row_idx = row     as usize;
             let rev_idx = rev_row as usize;
 
-            right_moves[row_idx] = row                           ^ result;
-            left_moves[rev_idx]  = rev_row                       ^ rev_res;
-            up_moves[rev_idx]    = Helpers::column_from(rev_row) ^ Helpers::column_from(rev_res);
-            down_moves[row_idx]  = Helpers::column_from(row)     ^ Helpers::column_from(result);
+            right_moves[row_idx] = row                        ^ result;
+            left_moves[rev_idx]  = rev_row                    ^ rev_res;
+            up_moves[rev_idx]    = Game::column_from(rev_row) ^ Game::column_from(rev_res);
+            down_moves[row_idx]  = Game::column_from(row)     ^ Game::column_from(result);
         };
 
         Moves { left: left_moves, right: right_moves, down: down_moves, up: up_moves, scores: scores }
