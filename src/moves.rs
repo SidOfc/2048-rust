@@ -3,7 +3,12 @@ extern crate rand;
 use super::Game;
 use self::rand::Rng;
 
-// container for moves.
+/// Struct that contains all available moves per row for up, down, right and left.
+/// Also stores the score for a given row.
+///
+/// Moves are stored as power values for tiles.
+/// if a power value is `> 0`, print the tile value using `2 << tile` where tile is any 4-bit
+/// "nybble" otherwise print a `0` instead.
 pub struct Moves {
     pub left:   Vec<u64>,
     pub right:  Vec<u64>,
@@ -12,8 +17,9 @@ pub struct Moves {
     pub scores: Vec<u64>
 }
 
-#[derive(Clone)]
-#[derive(PartialEq)]
+/// Enum that stores all available directions.
+/// This enum also provides some basic functions to allow a game to be using random moves.
+#[derive(Clone, PartialEq, Debug)]
 pub enum Direction {
     Left,
     Right,
@@ -22,11 +28,20 @@ pub enum Direction {
     None
 }
 
-lazy_static! {
-    static ref DIRECTIONS: Vec<Direction> = vec![Direction::Left, Direction::Right, Direction::Up, Direction::Down];
-}
+lazy_static! { static ref DIRECTIONS: Vec<Direction> = vec![Direction::Left, Direction::Right,
+                                                            Direction::Up, Direction::Down]; }
 
 impl Direction {
+    /// Returns a random `Direction`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tfe::Direction;
+    ///
+    /// let direction = Direction::sample();
+    /// // => Direction::Left
+    /// ```
     pub fn sample() -> Direction {
         match rand::thread_rng().gen_range(0, 4) {
             0 => Direction::Left,
@@ -37,12 +52,34 @@ impl Direction {
         }
     }
 
+    /// Returns a `Vec<Direction>` excluding `dirs: &Vec<Direction>`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tfe::Direction;
+    ///
+    /// let available = Direction::without(&vec![Direction::Left, Direction::Right]);
+    ///
+    /// assert_eq!(available, vec![Direction::Up, Direction::Down]);
+    /// ```
     pub fn without(dirs: &Vec<Direction>) -> Vec<Direction> {
         let mut filtered = DIRECTIONS.clone();
         filtered.retain(|dir| dirs.iter().all(|tried| &dir != &tried));
         filtered
     }
 
+    /// Like `tfe::Direction::sample` but combined with `tfe::Direction::without`.
+    /// Returns a random `Direction` after excluding `dirs: &Vec<Direction>`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use tfe::Direction;
+    ///
+    /// let direction = Direction::sample_without(&vec![Direction::Left, Direction::Right]);
+    /// // => Direction::Up
+    /// ```
     pub fn sample_without(dirs: &Vec<Direction>) -> Direction {
         let filtered     = &Self::without(dirs);
         let filtered_len = filtered.len();
@@ -54,6 +91,14 @@ impl Direction {
 }
 
 impl Moves {
+    /// Constructs a new `tfe::Moves`.
+    ///
+    /// `Moves` stores `right`, `left`, `up`, and `down` moves per row.
+    ///  e.g. left: `0x0011 -> 0x2000` and right: `0x0011 -> 0x0002`.
+    ///
+    ///  Also stores the `scores` per row.
+    ///  The score of a row is the sum of the tile and all intermediate tile merges.
+    ///  e.g. row `0x0002` has a score of `4` and row `0x0003` has a score of `16`.
     pub fn generate() -> Self {
         // initialization of move tables
         let mut left_moves  = vec![0; 65536];
