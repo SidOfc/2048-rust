@@ -4,7 +4,7 @@ version = "0.1.1"
 authors = ["Sidney Liebrand <sidneyliebrand@gmail.com>"]
 description = "A fast implementation of 2048 in rust"
 
-documentation="https://docs.rs/tfe/0.1.0/tfe"
+documentation="https://docs.rs/tfe"
 repository = "https://github.com/SidOfc/2048-rust"
 license = "MIT"
 
