@@ -1,6 +1,6 @@
 [package]
 name = "tfe"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Sidney Liebrand <sidneyliebrand@gmail.com>"]
 description = "A fast implementation of 2048 in rust"
 
