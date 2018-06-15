@@ -1,9 +1,122 @@
-extern crate rand;
+use super::rand::{thread_rng, Rng};
+use super::direction::Direction;
 
-use super::moves::{Moves, Direction};
-use self::rand::{thread_rng, Rng};
+/// Struct that contains all available moves per row for up, down, right and left.
+/// Also stores the score for a given row.
+///
+/// Moves are stored as power values for tiles.
+/// if a power value is `> 0`, print the tile value using `2 << tile` where tile is any 4-bit
+/// "nybble" otherwise print a `0` instead.
+struct Moves {
+    pub left:   Vec<u64>,
+    pub right:  Vec<u64>,
+    pub down:   Vec<u64>,
+    pub up:     Vec<u64>,
+    pub scores: Vec<u64>
+}
 
-lazy_static! { static ref MOVES: Moves = Moves::generate(); }
+impl Moves {
+    /// Returns the 4th bit from each row in given board OR'd.
+    pub fn column_from(board: u64) -> u64 {
+        (board | (board << 12) | (board << 24) | (board << 36)) & COL_MASK
+    }
+}
+
+lazy_static! {
+    /// Constructs a new `tfe::Moves`.
+    ///
+    /// `Moves` stores `right`, `left`, `up`, and `down` moves per row.
+    ///  e.g. left: `0x0011 -> 0x2000` and right: `0x0011 -> 0x0002`.
+    ///
+    ///  Also stores the `scores` per row.
+    ///  The score of a row is the sum of the tile and all intermediate tile merges.
+    ///  e.g. row `0x0002` has a score of `4` and row `0x0003` has a score of `16`.
+    static ref MOVES: Moves = {
+                // initialization of move tables
+        let mut left_moves  = vec![0; 65536];
+        let mut right_moves = vec![0; 65536];
+        let mut up_moves    = vec![0; 65536];
+        let mut down_moves  = vec![0; 65536];
+        let mut scores      = vec![0; 65536];
+
+        for row in 0 .. 65536 {
+            // break row into cells
+            let mut line = [
+                (row >>  0) & 0xF,
+                (row >>  4) & 0xF,
+                (row >>  8) & 0xF,
+                (row >> 12) & 0xF
+            ];
+
+            // calculate score for given row
+            let mut s = 0;
+
+            for i in 0 .. 4 {
+                if line[i] >= 2 { s += (line[i] - 1) * (1 << line[i]) }
+            }
+
+            scores[row as usize] = s;
+
+            let mut i = 0;
+
+            // perform a move to the left using current {row} as board
+            // generates 4 output moves for up, down, left and right by transposing and reversing
+            // this result.
+            while i < 3 {
+                // initial counter for the cell next to the current one (j)
+                let mut j = i + 1;
+
+                // find the next non-zero cell index
+                while j < 4 {
+                    if line[j] != 0 { break };
+                    j += 1;
+                };
+
+                // if j is out of bounds (> 3), all other cells are empty and we are done looping
+                if j == 4 { break };
+
+                // this is the part responsible for skipping empty (0 value) cells
+                // if the current cell is zero, shift the next non-zero cell to position i
+                // and retry this entry until line[i] becomes non-zero
+                if line[i] == 0 {
+                    line[i] = line[j];
+                    line[j] = 0;
+                    continue;
+
+                // otherwise, if the current cell and next cell are the same, merge them
+                } else if line[i] == line[j] {
+                    if line[i] != 0xF { line[i] += 1 };
+                    line[j] = 0;
+                }
+
+                // finally, move to the next (or current, if i was 0) row
+                i += 1;
+            }
+
+            // put the new row after merging back together into a "merged" row
+            let result = (line[0] <<  0) |
+                         (line[1] <<  4) |
+                         (line[2] <<  8) |
+                         (line[3] << 12);
+
+            // right and down use normal row and result variables.
+            // for left and up, we create a reverse of the row and result.
+            let rev_row = (row    >> 12) & 0x000F | (row    >> 4) & 0x00F0 | (row    << 4) & 0x0F00 | (row    << 12) & 0xF000;
+            let rev_res = (result >> 12) & 0x000F | (result >> 4) & 0x00F0 | (result << 4) & 0x0F00 | (result << 12) & 0xF000;
+
+            // results are keyed by row / reverse row index.
+            let row_idx = row     as usize;
+            let rev_idx = rev_row as usize;
+
+            right_moves[row_idx] = row                         ^ result;
+            left_moves[rev_idx]  = rev_row                     ^ rev_res;
+            up_moves[rev_idx]    = Moves::column_from(rev_row) ^ Moves::column_from(rev_res);
+            down_moves[row_idx]  = Moves::column_from(row)     ^ Moves::column_from(result);
+        };
+
+        Moves { left: left_moves, right: right_moves, down: down_moves, up: up_moves, scores: scores }
+    };
+}
 
 /// A mask with a single section of 16 bits set to 0.
 /// Used to extract a "horizontal slice" out of a 64 bit integer.
@@ -56,8 +169,8 @@ impl Game {
         game
     }
 
-    /// Like `new` but takes a callback that accepts two parameters and returns
-    /// a `Direction`. The parameters passed to the callback:
+    /// Like `new` but takes a closure that accepts two parameters and returns
+    /// a `Direction`. The parameters passed to the closure:
     ///
     /// - `u64`: The current board
     /// - `&Vec<Direction>`: A list of attempted moves that had no effect.
@@ -76,19 +189,20 @@ impl Game {
     /// In this example, the variable `game` will have a value of a single `Game` played to
     /// completion. A game is over when it has no moves left. This is true when all possible
     /// moves return the same resulting board as before the move was executed.
+    ///
+    /// The `failed: &Vec<Direction>` will contain **at most** 3 items, when the 4th item is added
+    /// the game ends automatically without calling the closure again.
     pub fn play<F: Fn(u64, &Vec<Direction>) -> Direction>(mv: F) -> Self {
         let mut game = Self::new();
         let mut attempted: Vec<Direction> = Vec::with_capacity(4);
 
         loop {
             let mv = mv(game.board, &attempted);
-
-            if mv == Direction::None || attempted.len() == 4 {
-                break
-            } else if !attempted.iter().any(|dir| dir == &mv) {
+            if !attempted.iter().any(|dir| dir == &mv) {
                 let result_board = Self::execute(game.board, &mv);
 
                 if game.board == result_board {
+                    if attempted.len() == 3 { break }
                     attempted.push(mv);
                 } else {
                     game.board  = result_board;
@@ -107,7 +221,6 @@ impl Game {
     /// - When `Direction::Right`, return board moved right
     /// - When `Direction::Down`, return board moved down
     /// - When `Direction::Up`, return board moved up
-    /// - When `Direction::None`, returns current board
     ///
     /// # Examples
     ///
@@ -134,8 +247,7 @@ impl Game {
             Direction::Left  => Self::move_left(board),
             Direction::Right => Self::move_right(board),
             Direction::Down  => Self::move_down(board),
-            Direction::Up    => Self::move_up(board),
-            Direction::None  => board
+            Direction::Up    => Self::move_up(board)
         }
     }
 
@@ -295,11 +407,6 @@ impl Game {
     /// The score of a single tile is the sum of the tile value and all intermediate merged tiles.
     pub fn score(board: u64) -> u64 {
         Self::table_helper(board, &MOVES.scores)
-    }
-
-    /// Returns the 4th bit from each row in given board OR'd.
-    pub fn column_from(board: u64) -> u64 {
-        (board | (board << 12) | (board << 24) | (board << 36)) & COL_MASK
     }
 
     /// Returns a `2` with 90% chance and `4` with 10% chance.

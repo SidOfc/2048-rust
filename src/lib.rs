@@ -18,12 +18,11 @@
 //! println!("score: {:<6} board hex: {:016x}", Game::score(game.board), game.board);
 //! ```
 //!
-//! The `play` method takes a callback that accepts a `board: u64` and `failed: &Vec<Direction>` as
-//! parameters and returns the next `Direction` to move in.
-//! A special `Direction::None` can be used to indicate that no move was possible, the game will
-//! quit automatically when `Direction::None` is encountered.
-//! The game will also terminate if each distinct move has been attempted and failed without any
-//! successfull move in between the failed moves.
+//! The `play` method takes a closure that accepts a `board: u64` and `failed: &Vec<Direction>` as
+//! parameters and returns a `Direction` to move in.
+//!
+//! The game will terminate automatically if each distinct move has been attempted and failed
+//! without any successfull move in between the failed moves.
 //!
 //! ---
 //!
@@ -36,10 +35,11 @@
 
 #[macro_use]
 extern crate lazy_static;
+extern crate rand;
 
-mod moves;
+mod direction;
 mod game;
 
-pub use moves::{Moves, Direction};
+pub use direction::Direction;
 pub use game::Game;
 

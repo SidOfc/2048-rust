@@ -31,7 +31,9 @@ let game = Game::play(|board, failed| Direction::sample_without(failed));
 println!("score: {:<6} board hex: {:016x}", Game::score(game.board), game.board);
 ```
 
-The play method takes a callback that accepts a `board: u64` and `failed: &Vec<Direction>` as parameters and returns the next `Direction` to move in. A special `Direction::None` can be used to indicate that no move was possible, the game will quit automatically when `Direction::None` is encountered. The game will also terminate if each distinct move has been attempted and failed without any successfull move in between.
+The play method takes a closure that accepts a `board: u64` and `failed: &Vec<Direction>` as parameters and returns the next `Direction` to move in.
+
+The game will terminate if each distinct move has been attempted and failed without any successfull move in between.
 
 ## Documentation
 
