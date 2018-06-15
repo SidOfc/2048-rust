@@ -229,18 +229,16 @@ impl Game {
     /// ```
     /// use tfe::{Game, Direction};
     ///
-    /// let mut game = Game::new();
-    /// Game::execute(game.board, &Direction::Left);
-    /// ```
+    /// let board = 0x0000_0000_0022_1100;
+    /// let moved = Game::execute(board, &Direction::Left);
     ///
-    /// The above `Game::execute` takes the current `u64` board and returns a new `u64` board moved
-    /// in that direction. e.g.
-    ///
-    /// ```
     /// // | 0 | 0 | 0 | 0 |      | 0 | 0 | 0 | 0 |
     /// // | 0 | 0 | 0 | 0 |  =>  | 0 | 0 | 0 | 0 |
     /// // | 0 | 0 | 4 | 4 |      | 8 | 0 | 0 | 0 |
     /// // | 2 | 2 | 0 | 0 |      | 4 | 0 | 0 | 0 |
+    ///
+    /// assert_eq!(board, 0x0000_0000_0022_1100);
+    /// assert_eq!(moved, 0x0000_0000_3000_2000);
     /// ```
     pub fn execute(board: u64, direction: &Direction) -> u64 {
         match direction {
@@ -288,6 +286,11 @@ impl Game {
     /// let board  = 0x0000_0000_0000_0011_u64;
     /// let result = Game::move_up(board);
     ///
+    /// // | 0 | 0 | 0 | 0 |      | 0 | 0 | 1 | 1 |
+    /// // | 0 | 0 | 0 | 0 |  =>  | 0 | 0 | 0 | 0 |
+    /// // | 0 | 0 | 0 | 0 |      | 0 | 0 | 0 | 0 |
+    /// // | 0 | 0 | 1 | 1 |      | 0 | 0 | 0 | 0 |
+    ///
     /// assert_eq!(result, 0x0011_0000_0000_0000);
     /// ```
     pub fn move_up(board: u64) -> u64 {
@@ -312,6 +315,11 @@ impl Game {
     ///
     /// let board  = 0x0011_0000_0000_0011_u64;
     /// let result = Game::move_down(board);
+    ///
+    /// // | 0 | 0 | 1 | 1 |      | 0 | 0 | 0 | 0 |
+    /// // | 0 | 0 | 0 | 0 |  =>  | 0 | 0 | 0 | 0 |
+    /// // | 0 | 0 | 0 | 0 |      | 0 | 0 | 0 | 0 |
+    /// // | 0 | 0 | 1 | 1 |      | 0 | 0 | 2 | 2 |
     ///
     /// assert_eq!(result, 0x0000_0000_0000_0022);
     /// ```
@@ -338,6 +346,11 @@ impl Game {
     /// let board  = 0x0000_0000_0000_2211_u64;
     /// let result = Game::move_right(board);
     ///
+    /// // | 0 | 0 | 0 | 0 |      | 0 | 0 | 0 | 0 |
+    /// // | 0 | 0 | 0 | 0 |  =>  | 0 | 0 | 0 | 0 |
+    /// // | 0 | 0 | 0 | 0 |      | 0 | 0 | 0 | 0 |
+    /// // | 2 | 2 | 1 | 1 |      | 0 | 0 | 3 | 2 |
+    ///
     /// assert_eq!(result, 0x0000_0000_0000_0032);
     /// ```
     pub fn move_right(board: u64) -> u64 {
@@ -361,6 +374,11 @@ impl Game {
     ///
     /// let board  = 0x0000_0000_0000_2211_u64;
     /// let result = Game::move_left(board);
+    ///
+    /// // | 0 | 0 | 0 | 0 |      | 0 | 0 | 0 | 0 |
+    /// // | 0 | 0 | 0 | 0 |  =>  | 0 | 0 | 0 | 0 |
+    /// // | 0 | 0 | 0 | 0 |      | 0 | 0 | 0 | 0 |
+    /// // | 2 | 2 | 1 | 1 |      | 3 | 2 | 0 | 0 |
     ///
     /// assert_eq!(result, 0x0000_0000_0000_3200);
     /// ```
@@ -395,7 +413,7 @@ impl Game {
         empty
     }
 
-    /// Returns the result of 4 lookups in `table` for each "row" in `board`.
+    /// Returns the sum of 4 lookups in `table` for each "row" in `board`.
     pub fn table_helper(board: u64, table: &Vec<u64>) -> u64 {
         table[((board >>  0) & ROW_MASK) as usize] +
         table[((board >> 16) & ROW_MASK) as usize] +
