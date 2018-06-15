@@ -1,6 +1,14 @@
 use super::rand::{thread_rng, Rng};
 use super::direction::Direction;
 
+/// A mask with a single section of 16 bits set to 0.
+/// Used to extract a "horizontal slice" out of a 64 bit integer.
+pub static ROW_MASK: u64 = 0xFFFF;
+
+/// A `u64` mask with 4 sections each starting after the n * 16th bit.
+/// Used to extract a "vertical slice" out of a 64 bit integer.
+pub static COL_MASK: u64 = 0x000F_000F_000F_000F_u64;
+
 /// Struct that contains all available moves per row for up, down, right and left.
 /// Also stores the score for a given row.
 ///
@@ -118,14 +126,6 @@ lazy_static! {
     };
 }
 
-/// A mask with a single section of 16 bits set to 0.
-/// Used to extract a "horizontal slice" out of a 64 bit integer.
-pub static ROW_MASK: u64 = 0xFFFF;
-
-/// A `u64` mask with 4 sections each starting after the n * 16th bit.
-/// Used to extract a "vertical slice" out of a 64 bit integer.
-pub static COL_MASK: u64 = 0x000F_000F_000F_000F_u64;
-
 /// Struct used to play a single game of 2048.
 ///
 /// `tfe::Game` uses a single `u64` as board value.
@@ -205,8 +205,7 @@ impl Game {
                     if attempted.len() == 3 { break }
                     attempted.push(mv);
                 } else {
-                    game.board  = result_board;
-                    game.board |= Self::spawn_tile(game.board);
+                    game.board = result_board | Self::spawn_tile(result_board);
                     attempted.clear();
                 }
             }
