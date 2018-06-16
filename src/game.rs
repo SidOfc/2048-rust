@@ -40,7 +40,7 @@ lazy_static! {
     ///  The score of a row is the sum of the tile and all intermediate tile merges.
     ///  e.g. row `0x0002` has a score of `4` and row `0x0003` has a score of `16`.
     static ref MOVES: Moves = {
-                // initialization of move tables
+        // initialization of move tables
         let mut left_moves  = vec![0; 65536];
         let mut right_moves = vec![0; 65536];
         let mut up_moves    = vec![0; 65536];
@@ -60,7 +60,7 @@ lazy_static! {
             let mut s = 0;
 
             for i in 0 .. 4 {
-                if line[i] >= 2 { s += (line[i] - 1) * (1 << line[i]) }
+                if line[i] > 1 { s += (line[i] - 1) * (2 << line[i]) }
             }
 
             scores[row as usize] = s;
