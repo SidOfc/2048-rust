@@ -1,3 +1,4 @@
+use std::ops::Add;
 use super::rand::{thread_rng, Rng};
 use super::direction::Direction;
 
@@ -413,11 +414,11 @@ impl Game {
     }
 
     /// Returns the sum of 4 lookups in `table` for each "row" in `board`.
-    pub fn table_helper(board: u64, table: &Vec<u64>) -> u64 {
-        table[((board >>  0) & ROW_MASK) as usize] +
-        table[((board >> 16) & ROW_MASK) as usize] +
-        table[((board >> 32) & ROW_MASK) as usize] +
-        table[((board >> 48) & ROW_MASK) as usize]
+    pub fn table_helper<T: Clone + Add<Output = T>>(board: u64, table: &Vec<T>) -> T {
+        table[((board >>  0) & ROW_MASK) as usize].clone() +
+        table[((board >> 16) & ROW_MASK) as usize].clone() +
+        table[((board >> 32) & ROW_MASK) as usize].clone() +
+        table[((board >> 48) & ROW_MASK) as usize].clone()
     }
 
     /// Returns the score of a given `board`.
